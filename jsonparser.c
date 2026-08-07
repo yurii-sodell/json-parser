@@ -52,6 +52,7 @@ int main(int argcounter, char* argvalue[]) {
             printf("We got here: pringing charss \n");
 
             working_node = jsnd_create();
+            
             while ((token = fgetc(file)) != token_right_curle_brace) {
                 putchar(token);
             }
