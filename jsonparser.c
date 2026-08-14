@@ -13,6 +13,7 @@ int main(int argcounter, char* argvalue[]) {
         fprintf(stderr, "Filename is not provided.");
         exit(-1);
     }
+    
 
     char* filename = argvalue[1];
     FILE* file = fopen(filename, "r");
@@ -22,7 +23,9 @@ int main(int argcounter, char* argvalue[]) {
         exit(2);
     }
 
+    
     JSON_node_pool* pool = jsnd_pool_create();
     jstkn_read_from_file_to_pool(pool, file);
+    
     
 }
