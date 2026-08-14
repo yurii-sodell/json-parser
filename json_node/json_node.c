@@ -1,9 +1,7 @@
 #include "json_node.h"
 #include <stdio.h>
-#include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
-
 
 typedef struct JSON_node {
     char* key;

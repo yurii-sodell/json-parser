@@ -1,4 +1,6 @@
 #include "json_node_pool/json_node_pool.h"
+#include "json_tokens_handler/json_tokens_handler.h"
+
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -21,6 +23,6 @@ int main(int argcounter, char* argvalue[]) {
     }
 
     JSON_node_pool* pool = jsnd_pool_create();
-    jsnd_pool_read_from_file(pool, file);
+    jstkn_read_from_file_to_pool(pool, file);
     
 }

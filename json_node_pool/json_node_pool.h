@@ -1,6 +1,9 @@
-#include "../json_node/json_node.h"
-typedef struct JSON_node_pool JSON_node_pool;
-#include <stdio.h>
+#ifndef JSPARSER_JSON_POOL_H
+#define JSPARSER_JSON_POOL_H
 
+#include "../json_node/json_node.h"
+
+typedef struct JSON_node_pool JSON_node_pool;
 JSON_node_pool* jsnd_pool_create();
-void jsnd_pool_read_from_file(JSON_node_pool* pool, FILE* file);
+
+#endif //JSPARSER_JSON_POOL_H
