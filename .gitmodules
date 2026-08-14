@@ -1,0 +1,3 @@
+[submodule "c-string-builder"]
+	path = c-string-builder
+	url = https://github.com/yurii-sodell/c-string-builder.git
