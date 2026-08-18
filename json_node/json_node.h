@@ -14,6 +14,9 @@ void jsnd_assign_bool(JSON_node* node, bool value);
 void jsnd_append_child(JSON_node* node, JSON_node* child_node);
 bool jsnd_has_key(JSON_node* node);
 int jsnd_get_structure_size();
+int jsnd_get_type(JSON_node* node);
+JSON_node* jsnd_get_child(JSON_node* node, int i);
+
 void jsnd_node_print(JSON_node* node);
 
 #endif // JSPARSER_JSON_NODE_H
