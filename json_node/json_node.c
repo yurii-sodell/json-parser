@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../array_list_t/array_list_t.h"
 
 #include "json_node_pool_shared.h"
 
@@ -72,7 +71,7 @@ JSON_node* jsnd_create() {
 JSON_node* jsnd_get_child(JSON_node* node, int i){
     if(node == NULL) return NULL;
     if(i > node->childs_counter || i < 0) return NULL;
-    return node->childNodes + i;
+    return *(node->childNodes + i);
 }
 
 JSON_node* jsnd_create_as_pool() {
@@ -118,7 +117,7 @@ void jsnd_append_child(JSON_node* node, JSON_node* child_node) {
         memcpy(node->childNodes + node->childs_counter, child_node,
                size_of_one_element);
         node->childs_counter++;
-        memcpy(child_node->parrentNode, node, sizeof(JSON_node*));
+        memcpy(child_node->parrentNode, node, sizeof(JSON_node));
     }
 }
 

@@ -27,10 +27,9 @@ JSON_node_pool* jsnd_pool_create() {
 }
 
 void jsnd_pool_print_nodes(JSON_node_pool* pool) {
-    
     int len = get_node_child_count(pool->root);
     for (int i = 0; i < len; i++) {
-        jsnd_node_print(jsnd_get_child(pool, i));
+        jsnd_node_print(jsnd_get_child(pool->root, i));
     }
 }
 
