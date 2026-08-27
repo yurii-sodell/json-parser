@@ -1,0 +1,87 @@
+{
+    "people": [
+        {
+            "id": 1,
+            "name": "Emily Johnson",
+            "age": 29,
+            "email": "emily.johnson@x.dummyjson.com",
+            "height": 193.24,
+            "role": "admin"
+        },
+        {
+            "id": 2,
+            "name": "Michael Williams",
+            "age": 36,
+            "email": "michael.williams@x.dummyjson.com",
+            "height": 186.22,
+            "role": "admin"
+        },
+        {
+            "id": 3,
+            "name": "Sophia Brown",
+            "age": 43,
+            "email": "sophia.brown@x.dummyjson.com",
+            "height": 177.72,
+            "role": "admin"
+        },
+        {
+            "id": 4,
+            "name": "James Davis",
+            "age": 46,
+            "email": "james.davis@x.dummyjson.com",
+            "height": 193.31,
+            "role": "admin"
+        },
+        {
+            "id": 5,
+            "name": "Emma Miller",
+            "age": 31,
+            "email": "emma.miller@x.dummyjson.com",
+            "height": 192.8,
+            "role": "admin"
+        },
+        {
+            "id": 6,
+            "name": "Olivia Wilson",
+            "age": 23,
+            "email": "olivia.wilson@x.dummyjson.com",
+            "height": 182.61,
+            "role": "moderator"
+        },
+        {
+            "id": 7,
+            "name": "Alexander Jones",
+            "age": 39,
+            "email": "alexander.jones@x.dummyjson.com",
+            "height": 153.89,
+            "role": "moderator"
+        },
+        {
+            "id": 8,
+            "name": "Ava Taylor",
+            "age": 28,
+            "email": "ava.taylor@x.dummyjson.com",
+            "height": 168.47,
+            "role": "moderator"
+        },
+        {
+            "id": 9,
+            "name": "Isabella Anderson",
+            "age": 32,
+            "email": "isabella.anderson@x.dummyjson.com",
+            "height": 150.56,
+            "role": "moderator"
+        },
+        {
+            "id": 10,
+            "name": "Jackson Evans",
+            "age": 35,
+            "email": "jackson.evans@x.dummyjson.com",
+            "height": 162.57,
+            "role": "user"
+        }
+    ],
+    "total": 208,
+    "skip": 0,
+    "limit": 10
+}

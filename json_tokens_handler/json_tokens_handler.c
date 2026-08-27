@@ -1,9 +1,9 @@
 #include "json_tokens_handler.h"
 
+#include <ctype.h>
 #include <stdlib.h>
 
 #include "../c-string-builder/string_builder_t.h"
-#include "../json_node_pool/json_node_pool.h"
 
 #define TOKEN_COLON ':'
 
@@ -20,6 +20,7 @@
 #define TOKEN_RIGHT_CURLY_BRACE '}'
 #define TOKEN_RIGHT_SQUARE_BRACE ']'
 #define TOKEN_COMMA ','
+#define TOKEN_DOT '.'
 
 // ignored outside the text
 #define TOKEN_END_OF_LINE_DEFAULT '\n'
@@ -31,8 +32,11 @@ typedef struct json_tokens_handler {
 
 #define LENGTH_OF_TRUE 4
 #define LENGTH_OF_FALSE 5
+#define LENGTH_OF_NULL 4
+
 char true_chars[LENGTH_OF_TRUE] = {'t', 'r', 'u', 'e'};
 char false_chars[LENGTH_OF_FALSE] = {'f', 'a', 'l', 's', 'e'};
+char null_chars[LENGTH_OF_NULL] = {'n', 'u', 'l', 'l'};
 
 void decide_on_value_and_assign(FILE* file, JSON_node* branch);
 JSON_node* build_as_object(FILE* file, JSON_node* branch);
@@ -61,15 +65,14 @@ void raise_error_with_token(char* reason, int token) {
     exit(1);
 }
 
-void check_unexpected_end(char token) {
-    if (token == EOF) {
-        raise_error_unexpected_end_of_the_file();
-    }
+void check_unexpected_end(FILE* file) {
+    int token = fgetc(file);
+    if (token == EOF) raise_error_unexpected_end_of_the_file();
+    ungetc(token, file);
 }
 
 bool is_ignored(char token) {
-    return (token == TOKEN_SPACE || token == TOKEN_END_OF_LINE_DEFAULT || token == TOKEN_TAB ||
-            token == EOF);
+    return (token == TOKEN_SPACE || token == TOKEN_END_OF_LINE_DEFAULT || token == TOKEN_TAB);
 }
 
 void read_and_skip_ignored_tokens(FILE* file) {
@@ -80,13 +83,27 @@ void read_and_skip_ignored_tokens(FILE* file) {
     ungetc(token, file);
 }
 
-void validate_file_or_exit(FILE* file) {
-    int token = fgetc(file);
+int fgetc_checked_cleared(FILE* file) {
+    read_and_skip_ignored_tokens(file);
+    check_unexpected_end(file);
+    return fgetc(file);
+}
 
+int fgetc_cleared(FILE* file) {
+    read_and_skip_ignored_tokens(file);
+    return fgetc(file);
+}
+
+int fgetc_checked(FILE* file) {
+    check_unexpected_end(file);
+    return fgetc(file);
+}
+
+void validate_file_or_exit(FILE* file) {
+    int token = fgetc_cleared(file);
     if (token == EOF) {
         raise_error("File is empty");
     }
-    read_and_skip_ignored_tokens(file);
     // entering the file, if it fails, error occurs due to syntax error in the biggining of json
     // file
 
@@ -113,15 +130,11 @@ char get_closing_token(int token) {
     }
 }
 
-int construct_int_or_float(FILE* file) {}
-
-char* construct_boolean(FILE* file) {}
-
 char* construct_string_or_key(FILE* file) {
     int token;
     string_builder_t* sb = sb_create();
-    sb_append_char(sb, fgetc(file));
-    while ((token = fgetc(file)) != TOKEN_DOUBLE_QUOTE) {
+    sb_append_char(sb, fgetc_checked(file));
+    while ((token = fgetc_checked(file)) != TOKEN_DOUBLE_QUOTE) {
         sb_append_char(sb, token);
     }
     sb_append_char(sb, token);
@@ -129,8 +142,6 @@ char* construct_string_or_key(FILE* file) {
     sb_free(sb);
     return to_return;
 }
-
-void assign_value_based_on_tokens(FILE* file, JSON_node* node) {}
 
 int has_reached_end_of_file(char token) { return token == EOF; }
 
@@ -143,7 +154,7 @@ bool try_to_build_boolean(FILE* file, char t_or_f_char) {
         case 't':
             raise_error_with_token("Failed on building value \'true\'", t_or_f_char);
             while (counter < LENGTH_OF_TRUE) {
-                char target = (char)fgetc(file);
+                char target = (char)fgetc_checked(file);
                 if (true_chars[counter] != target) {
                     raise_error_unexpected_token(true_chars[counter], target);
                     counter++;
@@ -153,7 +164,7 @@ bool try_to_build_boolean(FILE* file, char t_or_f_char) {
         case 'f':
             raise_error_with_token("Failed on building value \'false\'", t_or_f_char);
             while (counter < LENGTH_OF_FALSE) {
-                char target = (char)fgetc(file);
+                char target = (char)fgetc_checked(file);
                 if (false_chars[counter] != target) {
                     raise_error_unexpected_token(true_chars[counter], target);
                     counter++;
@@ -166,31 +177,85 @@ bool try_to_build_boolean(FILE* file, char t_or_f_char) {
     }
 }
 
+bool is_null_built(FILE* file) {
+    for (int i = 0; i < LENGTH_OF_NULL; i++) {
+        char target = (char)fgetc_checked(file);
+        if (null_chars[i] != target) {
+            raise_error_unexpected_token(null_chars[i], target);
+        }
+        return true;
+    }
+}
+
+long double construct_number(FILE* file) {
+    int token;
+    string_builder_t* value = sb_create();
+    bool is_dot_set = 0;
+    while ((token = fgetc_checked_cleared(file)) != TOKEN_COMMA &&
+           token != TOKEN_RIGHT_CURLY_BRACE && token != TOKEN_RIGHT_SQUARE_BRACE) {
+        if (isdigit(token)) {
+            sb_append_char(value, token);
+            continue;
+        }
+        if (token == TOKEN_DOT) {
+            if (!is_dot_set) {
+                sb_append_char(value, token);
+                is_dot_set = 1;
+                continue;
+            }
+            raise_error("Found second dot => \'.\' <=, while parsin digit");
+        }
+        raise_error_with_token("Unexpected token while parcing digit", token);
+    }
+    ungetc(token, file);
+    char* read_string = sb_copy_of_string_value(value);
+    long double number = strtold(read_string, NULL);
+    if (read_string != NULL) {
+        free(read_string);
+    }
+    sb_free(value);
+    return number;
+}
 
 void decide_on_value_and_assign(FILE* file, JSON_node* branch) {
-    read_and_skip_ignored_tokens(file);
-    int token = fgetc(file);
+    int token = fgetc_checked_cleared(file);
+
     if (token == 't' || token == 'f') {
         bool built_bool = try_to_build_boolean(file, token);
         jsnd_assign_bool(branch, built_bool);
         return;
     }
 
-    if(token == TOKEN_DOUBLE_QUOTE){
+    if (token == 'n') {
+        ungetc(token, file);
+        if (is_null_built(file)) {
+            jsnd_assign_value_null(branch);
+        }
+        return;
+    }
+
+    if (isdigit(token)) {
+        ungetc(token, file);
+        long double x = construct_number(file);
+        jsnd_assign_number(branch, x);
+        return;
+    }
+
+    if (token == TOKEN_DOUBLE_QUOTE) {
         ungetc(token, file);
         char* string_value = construct_string_or_key(file);
         jsnd_assign_string(branch, string_value);
         return;
     }
 
-    if(token == TOKEN_LEFT_CURLY_BRACE){
+    if (token == TOKEN_LEFT_CURLY_BRACE) {
         JSON_node* child = jsnd_create();
         build_as_object(file, child);
         jsnd_append_child(branch, child);
         return;
     }
 
-    if(token == TOKEN_LEFT_SQUARE_BRACE){
+    if (token == TOKEN_LEFT_SQUARE_BRACE) {
         JSON_node* child = jsnd_create();
         build_as_array(file, child);
         jsnd_append_child(branch, child);
@@ -198,60 +263,60 @@ void decide_on_value_and_assign(FILE* file, JSON_node* branch) {
     }
 }
 
-JSON_node* build_as_object(FILE* file, JSON_node* branch) {
+JSON_node* build_as_object(FILE* file, JSON_node* root) {
     read_and_skip_ignored_tokens(file);
+
+    JSON_node* child = jsnd_create();
     int token = fgetc(file);
     if (token == TOKEN_DOUBLE_QUOTE) {  // == "
         // building the key;
         ungetc(token, file);
         char* key = construct_string_or_key(file);
-        jsnd_assign_key(branch, key);
-        token = fgetc(file);
+        jsnd_assign_key(child, key);
+        token = fgetc_checked_cleared(file);
         // now we are going to build value
         if (token == TOKEN_COLON) {
-            decide_on_value_and_assign(file, branch);
-        } else {
-            raise_error_unexpected_token(':', token);
-        }
+            decide_on_value_and_assign(file, child);
+            jsnd_append_child(root, child);
 
+        } else {
+            raise_error_unexpected_token(TOKEN_COLON, token);  // ':'
+        }
     } else {
         raise_error("Error occured while building a key");
     }
+
+    token = fgetc_checked_cleared(file);
+    if (token == TOKEN_RIGHT_CURLY_BRACE) return root;
+    if (token != TOKEN_COMMA) raise_error_unexpected_token(TOKEN_COMMA, token);
+    build_as_object(file, root);
 }
 
-bool jstkn_read_from_file_to_branch(FILE* file, JSON_node* branch) {
-    read_and_skip_ignored_tokens(file);
+JSON_node* jstkn_read_from_file_by_token(FILE* file) {
+    JSON_node* root;
     bool has_reached_end = false;
-    if (branch == NULL) {
-        branch = jsnd_create();
-    }
-
     int token = fgetc(file);
     char x = (char)token;
     switch (x) {
         case TOKEN_LEFT_CURLY_BRACE:
-            build_as_object(file, branch);
+            root = jsnd_create();
+            build_as_object(file, root);
             break;
         case TOKEN_RIGHT_CURLY_BRACE:
-            build_as_array(file, branch);
+            root = jsnd_create();
+            build_as_array(file, root);
             break;
         default:
             raise_error_with_token("Unexpected token", x);
             break;
     }
-    return has_reached_end_of_file(token);
+    return root;
 }
 
-void jstkn_read_from_file_to_pool(JSON_node_pool* pool, FILE* file) {
+JSON_node* jstkn_read_from_file(FILE* file) {
     validate_file_or_exit(file);
     // the file biggining looks fine, now we are going to read tokens from the beggining
-    bool reading = true;
-    while (reading) {
-        read_and_skip_ignored_tokens(file);
-        JSON_node* new_branch = NULL;
-        reading = jstkn_read_from_file_to_branch(file, new_branch);
-        if (new_branch != NULL) {
-            jsnd_pool_assign_node(pool, new_branch);
-        }
-    }
+    JSON_node* root = jstkn_read_from_file_by_token(file);
+    jsnd_mark_as_root(root);
+    return root;
 }
