@@ -1,27 +1,11 @@
-
 {
-    "users": [
+    "people": [
         {
             "id": 1,
             "name": "Emily Johnson",
             "age": 29,
             "email": "emily.johnson@x.dummyjson.com",
             "height": 193.24,
-            "hair": {
-                "color": "Brown",
-                "type": "Curly"
-            },
-            "address": {
-                "city": "Phoenix",
-                "coordinates": {
-                    "lat": -77.16213,
-                    "lng": -92.084824
-                }
-            },
-            "company": {
-                "name": "Dooley, Kozey and Cronin",
-                "title": "Sales Manager"
-            },
             "role": "admin"
         },
         {
@@ -30,21 +14,6 @@
             "age": 36,
             "email": "michael.williams@x.dummyjson.com",
             "height": 186.22,
-            "hair": {
-                "color": "Green",
-                "type": "Straight"
-            },
-            "address": {
-                "city": "Houston",
-                "coordinates": {
-                    "lat": 22.815468,
-                    "lng": 115.608581
-                }
-            },
-            "company": {
-                "name": "Spinka - Dickinson",
-                "title": "Support Specialist"
-            },
             "role": "admin"
         },
         {
@@ -53,21 +22,6 @@
             "age": 43,
             "email": "sophia.brown@x.dummyjson.com",
             "height": 177.72,
-            "hair": {
-                "color": "White",
-                "type": "Wavy"
-            },
-            "address": {
-                "city": "Washington",
-                "coordinates": {
-                    "lat": 45.289366,
-                    "lng": 46.832664
-                }
-            },
-            "company": {
-                "name": "Schiller - Zieme",
-                "title": "Accountant"
-            },
             "role": "admin"
         },
         {
@@ -76,21 +30,6 @@
             "age": 46,
             "email": "james.davis@x.dummyjson.com",
             "height": 193.31,
-            "hair": {
-                "color": "Blonde",
-                "type": "Straight"
-            },
-            "address": {
-                "city": "Seattle",
-                "coordinates": {
-                    "lat": 16.782513,
-                    "lng": -139.34723
-                }
-            },
-            "company": {
-                "name": "Pagac and Sons",
-                "title": "Research Analyst"
-            },
             "role": "admin"
         },
         {
@@ -99,21 +38,6 @@
             "age": 31,
             "email": "emma.miller@x.dummyjson.com",
             "height": 192.8,
-            "hair": {
-                "color": "White",
-                "type": "Straight"
-            },
-            "address": {
-                "city": "Jacksonville",
-                "coordinates": {
-                    "lat": 0.505589,
-                    "lng": -157.43281
-                }
-            },
-            "company": {
-                "name": "Graham - Gulgowski",
-                "title": "Quality Assurance Engineer"
-            },
             "role": "admin"
         },
         {
@@ -122,21 +46,6 @@
             "age": 23,
             "email": "olivia.wilson@x.dummyjson.com",
             "height": 182.61,
-            "hair": {
-                "color": "Gray",
-                "type": "Curly"
-            },
-            "address": {
-                "city": "Fort Worth",
-                "coordinates": {
-                    "lat": 75.32627,
-                    "lng": -26.15285
-                }
-            },
-            "company": {
-                "name": "Pfannerstill Inc",
-                "title": "Research Analyst"
-            },
             "role": "moderator"
         },
         {
@@ -145,21 +54,6 @@
             "age": 39,
             "email": "alexander.jones@x.dummyjson.com",
             "height": 153.89,
-            "hair": {
-                "color": "White",
-                "type": "Straight"
-            },
-            "address": {
-                "city": "Indianapolis",
-                "coordinates": {
-                    "lat": 35.289664,
-                    "lng": 7.063255
-                }
-            },
-            "company": {
-                "name": "Dickens - Beahan",
-                "title": "Web Developer"
-            },
             "role": "moderator"
         },
         {
@@ -168,21 +62,6 @@
             "age": 28,
             "email": "ava.taylor@x.dummyjson.com",
             "height": 168.47,
-            "hair": {
-                "color": "Red",
-                "type": "Kinky"
-            },
-            "address": {
-                "city": "Fort Worth",
-                "coordinates": {
-                    "lat": -81.194833,
-                    "lng": -87.948158
-                }
-            },
-            "company": {
-                "name": "Nikolaus Inc",
-                "title": "Chief Executive Officer"
-            },
             "role": "moderator"
         },
         {
@@ -191,21 +70,6 @@
             "age": 32,
             "email": "isabella.anderson@x.dummyjson.com",
             "height": 150.56,
-            "hair": {
-                "color": "Blonde",
-                "type": "Curly"
-            },
-            "address": {
-                "city": "New York",
-                "coordinates": {
-                    "lat": 41.331324,
-                    "lng": 151.782727
-                }
-            },
-            "company": {
-                "name": "Pollich - Hilpert",
-                "title": "Chief Financial Officer"
-            },
             "role": "moderator"
         },
         {
@@ -214,21 +78,6 @@
             "age": 35,
             "email": "jackson.evans@x.dummyjson.com",
             "height": 162.57,
-            "hair": {
-                "color": "Red",
-                "type": "Straight"
-            },
-            "address": {
-                "city": "New York",
-                "coordinates": {
-                    "lat": 34.722451,
-                    "lng": 63.448927
-                }
-            },
-            "company": {
-                "name": "Kuhlman LLC",
-                "title": "Web Developer"
-            },
             "role": "user"
         }
     ],

@@ -39,8 +39,8 @@ char false_chars[LENGTH_OF_FALSE] = {'f', 'a', 'l', 's', 'e'};
 char null_chars[LENGTH_OF_NULL] = {'n', 'u', 'l', 'l'};
 
 void decide_on_value_and_assign(FILE* file, JSON_node* branch);
-JSON_node* build_as_object(FILE* file, JSON_node* branch);
 JSON_node* build_as_array(FILE* file, JSON_node* branch);
+JSON_node* build_as_object(FILE* file, JSON_node* root);
 
 void raise_error(char* reason) {
     fprintf(stderr, "Error occured: => %s <=, exiting...", reason);
@@ -145,47 +145,35 @@ char* construct_string_or_key(FILE* file) {
 
 int has_reached_end_of_file(char token) { return token == EOF; }
 
-JSON_node* build_as_array(FILE* file, JSON_node* branch) { read_and_skip_ignored_tokens(file); }
-
 bool try_to_build_boolean(FILE* file, char t_or_f_char) {
-    int counter = 1;
-
+    int counter = 0;
     switch (t_or_f_char) {
         case 't':
-            raise_error_with_token("Failed on building value \'true\'", t_or_f_char);
             while (counter < LENGTH_OF_TRUE) {
                 char target = (char)fgetc_checked(file);
                 if (true_chars[counter] != target) {
-                    raise_error_unexpected_token(true_chars[counter], target);
-                    counter++;
+                    raise_error_with_token("Failed on building value \'true\'", t_or_f_char);
                 }
+                counter++;
             }
             return true;
         case 'f':
-            raise_error_with_token("Failed on building value \'false\'", t_or_f_char);
             while (counter < LENGTH_OF_FALSE) {
                 char target = (char)fgetc_checked(file);
                 if (false_chars[counter] != target) {
-                    raise_error_unexpected_token(true_chars[counter], target);
-                    counter++;
+                    raise_error_with_token("Failed on building value \'false\'", t_or_f_char);
                 }
+                counter++;
             }
             return false;
         default:
+            
             raise_error_with_token("Expected t or f", t_or_f_char);
             break;
     }
 }
 
-bool is_null_built(FILE* file) {
-    for (int i = 0; i < LENGTH_OF_NULL; i++) {
-        char target = (char)fgetc_checked(file);
-        if (null_chars[i] != target) {
-            raise_error_unexpected_token(null_chars[i], target);
-        }
-        return true;
-    }
-}
+
 
 long double construct_number(FILE* file) {
     int token;
@@ -217,10 +205,21 @@ long double construct_number(FILE* file) {
     return number;
 }
 
+bool is_null_built(FILE* file) {
+    for (int i = 0; i < LENGTH_OF_NULL; i++) {
+        char target = (char)fgetc_checked(file);
+        if (null_chars[i] != target) {
+            raise_error_unexpected_token(null_chars[i], target);
+        }
+    }
+    return true;
+}
+
 void decide_on_value_and_assign(FILE* file, JSON_node* branch) {
     int token = fgetc_checked_cleared(file);
 
     if (token == 't' || token == 'f') {
+        ungetc(token, file);
         bool built_bool = try_to_build_boolean(file, token);
         jsnd_assign_bool(branch, built_bool);
         return;
@@ -249,16 +248,12 @@ void decide_on_value_and_assign(FILE* file, JSON_node* branch) {
     }
 
     if (token == TOKEN_LEFT_CURLY_BRACE) {
-        JSON_node* child = jsnd_create();
-        build_as_object(file, child);
-        jsnd_append_child(branch, child);
+        build_as_object(file, branch);
         return;
     }
 
     if (token == TOKEN_LEFT_SQUARE_BRACE) {
-        JSON_node* child = jsnd_create();
-        build_as_array(file, child);
-        jsnd_append_child(branch, child);
+        build_as_array(file, branch);
         return;
     }
 }
@@ -278,7 +273,6 @@ JSON_node* build_as_object(FILE* file, JSON_node* root) {
         if (token == TOKEN_COLON) {
             decide_on_value_and_assign(file, child);
             jsnd_append_child(root, child);
-
         } else {
             raise_error_unexpected_token(TOKEN_COLON, token);  // ':'
         }
@@ -292,6 +286,10 @@ JSON_node* build_as_object(FILE* file, JSON_node* root) {
     build_as_object(file, root);
 }
 
+JSON_node* build_as_array(FILE* file, JSON_node* branch) {
+    read_and_skip_ignored_tokens(file);
+}
+
 JSON_node* jstkn_read_from_file_by_token(FILE* file) {
     JSON_node* root;
     bool has_reached_end = false;
@@ -302,7 +300,7 @@ JSON_node* jstkn_read_from_file_by_token(FILE* file) {
             root = jsnd_create();
             build_as_object(file, root);
             break;
-        case TOKEN_RIGHT_CURLY_BRACE:
+        case TOKEN_LEFT_SQUARE_BRACE:
             root = jsnd_create();
             build_as_array(file, root);
             break;

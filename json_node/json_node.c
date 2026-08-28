@@ -126,6 +126,7 @@ int jsnd_get_structure_size() { return sizeof(JSON_node); };
 void jsnd_print_nodes_reqursively(JSON_node* node) {
     
     if(node->is_root){
+
         int lenc = node->childs_counter;
         for (int i = 0; i < lenc; i++) {
             JSON_node* child_node = jsnd_get_child(node, i);
@@ -147,14 +148,18 @@ void jsnd_print_nodes_reqursively(JSON_node* node) {
                 printf("\nKey: %20s | Value: %20s", node->key, node->value.string);
                 break;
             case NODE_OBJECT_AS_VALUE:
-                printf("\n%2c->", ' ');
+                printf("\n%2c->Key: %20s", ' ', node->key);
                 int len_obj = node->childs_counter;
+                printf("\nLen: %d", node->childs_counter);
                 for (int i = 0; i < len_obj; i++) {
                     jsnd_print_nodes_reqursively(node->childNodes[i]);
                 }
                 break;
+            case NODE_VALUE_NULL:
+                printf("\nKey: %20s | Value: null", node->key);
+                break;
             case NODE_ARRAY_AS_VALUE:
-                printf("\n%2c->", ' ');
+                printf("\n->Key: %20s", node->key);
                 int len_arr = node->childs_counter;
                 for (int i = 0; i < len_arr; i++) {
                     jsnd_print_nodes_reqursively(node->childNodes[i]);
