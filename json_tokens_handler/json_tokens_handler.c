@@ -38,6 +38,11 @@ char true_chars[LENGTH_OF_TRUE] = {'t', 'r', 'u', 'e'};
 char false_chars[LENGTH_OF_FALSE] = {'f', 'a', 'l', 's', 'e'};
 char null_chars[LENGTH_OF_NULL] = {'n', 'u', 'l', 'l'};
 
+#define TOKEN_PLUS '+'
+#define TOKEN_MINUS '-'
+#define TOKEN_EXPONENT_LOWER_CASE 'e'
+#define TOKEN_EXPONENT_UPPER_CASE 'E'
+
 void decide_on_value_and_assign(FILE* file, JSON_node* branch);
 JSON_node* build_as_array(FILE* file, JSON_node* branch);
 JSON_node* build_as_object(FILE* file, JSON_node* root);
@@ -167,27 +172,60 @@ bool try_to_build_boolean(FILE* file, char t_or_f_char) {
             }
             return false;
         default:
-            
+
             raise_error_with_token("Expected t or f", t_or_f_char);
             break;
     }
 }
 
-
-
 long double construct_number(FILE* file) {
     int token;
-    string_builder_t* value = sb_create();
-    bool is_dot_set = 0;
+
+    string_builder_t* sb_number = sb_create();
+    string_builder_t* sb_exponent = sb_create();
+
+
+    bool is_dot_set = false;
+    bool is_exponent_present = false;
+    bool sign_can_be_set = true;
+
+    long double number = 0;
+    long exponent = 0;
+
     while ((token = fgetc_checked_cleared(file)) != TOKEN_COMMA &&
            token != TOKEN_RIGHT_CURLY_BRACE && token != TOKEN_RIGHT_SQUARE_BRACE) {
-        if (isdigit(token)) {
-            sb_append_char(value, token);
+
+        if(sign_can_be_set && (token == TOKEN_MINUS || token == TOKEN_PLUS)){
+            if(is_exponent_present){
+                sb_append_char(sb_exponent, token);
+            }else{
+                sb_append_char(sb_number, token);
+            }
+            sign_can_be_set = false;
             continue;
         }
-        if (token == TOKEN_DOT) {
+        
+        if (isdigit(token) && !is_exponent_present) {
+            sb_append_char(sb_number, token);
+            sign_can_be_set = false;
+            continue;
+        }
+
+        if(isdigit(token) && is_exponent_present){
+            sb_append_char(sb_exponent, token);
+            sign_can_be_set = false;
+            continue;
+        }
+
+        if(token == TOKEN_EXPONENT_LOWER_CASE || token == TOKEN_EXPONENT_UPPER_CASE){
+            is_exponent_present = true;
+            sign_can_be_set = true;
+            continue;
+        }
+
+        if (token == TOKEN_DOT && !is_exponent_present) {
             if (!is_dot_set) {
-                sb_append_char(value, token);
+                sb_append_char(sb_number, token);
                 is_dot_set = 1;
                 continue;
             }
@@ -196,12 +234,33 @@ long double construct_number(FILE* file) {
         raise_error_with_token("Unexpected token while parcing digit", token);
     }
     ungetc(token, file);
-    char* read_string = sb_copy_of_string_value(value);
-    long double number = strtold(read_string, NULL);
-    if (read_string != NULL) {
-        free(read_string);
+    char* string_value = sb_copy_of_string_value(sb_number);
+    number = strtold(string_value, NULL);
+    
+
+    char* string_exponent;
+    if(is_exponent_present){
+        string_exponent = sb_copy_of_string_value(sb_exponent);
+        exponent = strtol(string_exponent, NULL, 10);
     }
-    sb_free(value);
+
+    double multiplyer = 1;
+    if (exponent > 0) {
+        multiplyer = 10;
+    } else if (exponent < 0) {
+        exponent = abs(exponent);
+        multiplyer = 0.1;
+    }
+
+    
+    for (int i = 0; i < exponent; i++) {
+        number = number * multiplyer;
+    }
+
+    if (string_value != NULL) {
+        free(string_value);
+    }
+    sb_free(sb_number);
     return number;
 }
 
@@ -233,7 +292,7 @@ void decide_on_value_and_assign(FILE* file, JSON_node* branch) {
         return;
     }
 
-    if (isdigit(token)) {
+    if (isdigit(token) || token == TOKEN_MINUS) {
         ungetc(token, file);
         long double x = construct_number(file);
         jsnd_assign_number(branch, x);
@@ -256,6 +315,8 @@ void decide_on_value_and_assign(FILE* file, JSON_node* branch) {
         build_as_array(file, branch);
         return;
     }
+
+    raise_error_with_token("Unexpected token while parsing value", token);
 }
 
 JSON_node* build_as_object(FILE* file, JSON_node* root) {
@@ -286,9 +347,7 @@ JSON_node* build_as_object(FILE* file, JSON_node* root) {
     build_as_object(file, root);
 }
 
-JSON_node* build_as_array(FILE* file, JSON_node* branch) {
-    read_and_skip_ignored_tokens(file);
-}
+JSON_node* build_as_array(FILE* file, JSON_node* branch) { read_and_skip_ignored_tokens(file); }
 
 JSON_node* jstkn_read_from_file_by_token(FILE* file) {
     JSON_node* root;
